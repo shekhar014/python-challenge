@@ -1,65 +1,49 @@
-#import packages
+#Import Required Package
 import os
 import csv
 
-#open file
-csvpath=os.path.join('Resources','03-Python_Homework_Instructions_PyBank_Resources_budget_data.csv')
+#Declaration and Initialization
+file_path = "03-Python/Homework/Instructions/PyBank/Resources"
+date = []
+profit_losses = []
+change_price = []
+last_month_amount = 0
+count = 1
 
-#emply lists for month and revenue data
-months = []
-revenue = []
+#Read Data from the file
+with open(os.path.join(file_path,"budget_data.csv"),mode ="r",encoding="utf-8",newline="") as csvfile:
+    csvreader = csv.reader(csvfile,delimiter=",")
+    #Skip Header
+    next(csvreader,None)
+    for row in csvreader:
+        #Populate date and profit/losses list
+        date.append(row[0])
+        profit_losses.append(int(row[1]))
+        #For first row skip calculating average change
+        if(count==1):
+            change_price.append(last_month_amount)
+            last_month_amount = int(row[1])
+            count = count + 1
+        else:
+        #From second row calculate average change between consecutive months    
+            change_price.append((int(row[1])-last_month_amount))
+            last_month_amount = int(row[1])
+            count = count + 1
 
-#read csv and parse data into lists
-with open(csvpath, 'r') as csvfile:
-    csvread = csv.reader(csvfile,delimiter=',')
-    #skip header
-    next(csvread, None)
-    #parse data
-    for row in csvread:
-        months.append(row[0])
-        revenue.append(int(row[1]))
+#Write to text file
+with open(os.path.join(file_path,"PyBank.txt"),mode="w") as Pytxt:
+    Pytxt.write("Financial Analysis\n")
+    Pytxt.writelines("----------------------------\n")
+    Pytxt.writelines(f"Total Months: {len(date)}\n")
+    Pytxt.writelines(f'Total: ${sum(profit_losses)}\n')
+    #Calculating average change in profit and losses
+    Pytxt.writelines(f'Average Change: ${round(sum(change_price)/(len(change_price)-1),2)}\n')
+    #Greatest Increase in profits
+    Pytxt.writelines(f'Greatest Increase: {date[change_price.index(max(change_price))]} (${max(change_price)})\n')
+    #Greatest Decrease in profits
+    Pytxt.writelines(f'Greatest Decrease: {date[change_price.index(min(change_price))]} (${(min(change_price))})\n')
 
-#find total months
-total_months = len(months)
-#initialize
-maxRevenue = revenue[0]
-minRevenue = revenue[0]
-netAmount = 0
-revenue_change = revenue[0]
-previousMonth = revenue[0]
-sum_revenue_change = 0
-for i in range(len(revenue)) :
-    #Calculate revenue change between two months
-    revenue_change = revenue[i] - previousMonth
-    #Add Revenue Change for each month
-    sum_revenue_change = sum_revenue_change + revenue_change
-    #Comparision for max and min revenue
-    if(revenue_change > maxRevenue):
-        maxRevenue=revenue_change
-        maxRevenuemonth = months[i] 
-    elif(revenue_change < minRevenue):
-        minRevenue = revenue_change
-        minRevenuemonth = months[i]
-    #Calculate Net Amount    
-    netAmount = netAmount + revenue[i]
-    #Update variable to store last month revenue
-    previousMonth = revenue[i]
-#calculate average_change
-averagerevenueChange = round(sum_revenue_change/(total_months-1), 2)
-
-#sets path for output file
-output_dest = os.path.join('Output','pybank_output.txt')
-
-# opens the output destination in write mode and prints the summary
-with open(output_dest, 'w') as writefile:
-    writefile.writelines('Financial Analysis\n')
-    writefile.writelines('----------------------------' + '\n')
-    writefile.writelines('Total Months: ' + str(total_months) + '\n')
-    writefile.writelines('Total: $' + str(netAmount) + '\n')
-    writefile.writelines('Average Change: $' + str(averagerevenueChange) + '\n')
-    writefile.writelines('Greatest Increase in Profits: ' + maxRevenuemonth + ' ($' + str(maxRevenue) + ')'+ '\n')
-    writefile.writelines('Greatest Decrease in Profits: ' + minRevenuemonth + ' ($' + str(minRevenue) + ')')
-
-#opens the output file in r mode and prints to terminal
-with open(output_dest, 'r') as readfile:
-    print(readfile.read())
+#Read from text file and print to console
+with open(os.path.join(file_path,"PyBank.txt"),mode="r",newline="") as Pytxt:
+    print(Pytxt.read())
+    
